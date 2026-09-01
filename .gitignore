@@ -1,0 +1,7 @@
+.venv/
+models/
+outputs/
+runtime/
+__pycache__/
+.DS_Store
+*.partial.mp4

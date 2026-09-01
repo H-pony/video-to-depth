@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d0c">
+  <title>本地深度视频工具</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090b0a;
+      --panel: #111411;
+      --panel-2: #171b17;
+      --line: #2a302b;
+      --text: #f1f5ef;
+      --muted: #9ca69d;
+      --accent: #c8ff57;
+      --accent-strong: #aaf12c;
+      --danger: #ff776d;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .38);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-height: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 78% 8%, rgba(200, 255, 87, .09), transparent 27rem),
+        linear-gradient(180deg, #0d100e 0, var(--bg) 28rem);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+      letter-spacing: -.01em;
+    }
+
+    button, input { font: inherit; }
+
+    button, a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 70px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 760;
+      letter-spacing: .12em;
+    }
+
+    .brand-mark {
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: relative;
+      box-shadow: inset 0 0 0 5px var(--bg);
+      background: var(--accent);
+    }
+
+    .local-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(17, 20, 17, .7);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(200, 255, 87, .85);
+    }
+
+    .hero {
+      max-width: 820px;
+      margin-bottom: 36px;
+    }
+
+    .eyebrow {
+      margin: 0 0 17px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 740;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(42px, 7vw, 76px);
+      line-height: .98;
+      letter-spacing: -.065em;
+      font-weight: 760;
+      max-width: 780px;
+    }
+
+    .hero-copy {
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+      max-width: 650px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: rgba(17, 20, 17, .9);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .main-card { padding: 14px; }
+
+    .dropzone {
+      min-height: 350px;
+      border: 1px dashed #4a554a;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      padding: 42px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+      outline: none;
+      background:
+        linear-gradient(rgba(255, 255, 255, .018), rgba(255, 255, 255, 0)),
+        repeating-linear-gradient(90deg, transparent 0 39px, rgba(255,255,255,.016) 40px);
+    }
+
+    .dropzone:hover,
+    .dropzone:focus-visible,
+    .dropzone.dragging {
+      border-color: var(--accent);
+      background-color: rgba(200, 255, 87, .035);
+      transform: translateY(-1px);
+    }
+
+    .upload-symbol {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 1px solid #3a423b;
+      background: var(--panel-2);
+      color: var(--accent);
+      font-size: 34px;
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    .drop-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .drop-copy {
+      margin: 10px 0 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 11px;
+      padding: 0 20px;
+      background: var(--accent);
+      color: #12170d;
+      font-weight: 760;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .18s ease, transform .18s ease, opacity .18s ease;
+    }
+
+    .button:hover { background: var(--accent-strong); transform: translateY(-1px); }
+    .button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    .button.secondary {
+      border: 1px solid var(--line);
+      background: #1b201b;
+      color: var(--text);
+    }
+
+    .button.secondary:hover { background: #242a24; }
+
+    .button.full { width: 100%; }
+
+    .side-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .side-label {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 740;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .spec-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .spec-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .spec-list li:last-child { border-bottom: 1px solid var(--line); }
+    .spec-list span { color: var(--muted); }
+    .spec-list strong { font-weight: 650; }
+
+    .privacy-note {
+      margin: auto 0 0;
+      padding-top: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .privacy-note strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .selection,
+    .processing,
+    .result,
+    .error-card {
+      display: none;
+      padding: 24px;
+    }
+
+    .selection.visible,
+    .processing.visible,
+    .result.visible,
+    .error-card.visible { display: block; }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #0e110f;
+    }
+
+    .file-thumb {
+      width: 74px;
+      height: 74px;
+      object-fit: cover;
+      border-radius: 9px;
+      background: #060706;
+    }
+
+    .file-info { min-width: 0; flex: 1; }
+
+    .file-name {
+      margin: 0 0 8px;
+      font-weight: 680;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .action-row .button:first-child { flex: 1; }
+
+    .process-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .process-title {
+      margin: 0 0 6px;
+      font-size: 21px;
+    }
+
+    .process-stage {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress-value {
+      color: var(--accent);
+      font-size: 28px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 720;
+    }
+
+    .progress-track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #252b25;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      box-shadow: 0 0 20px rgba(200, 255, 87, .38);
+      transition: width .35s ease;
+    }
+
+    .process-note {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .result-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .segment-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .segment-card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: #0c0f0d;
+    }
+
+    .result-video {
+      width: 100%;
+      height: 260px;
+      display: block;
+      object-fit: contain;
+      background: #050605;
+    }
+
+    .segment-body { padding: 15px; }
+
+    .segment-index {
+      margin: 0 0 7px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 740;
+      letter-spacing: .12em;
+    }
+
+    .segment-name {
+      margin: 0 0 7px;
+      overflow: hidden;
+      font-size: 14px;
+      font-weight: 670;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .segment-meta {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .segment-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .segment-actions .button {
+      min-height: 40px;
+      padding: 0 11px;
+      font-size: 12px;
+    }
+
+    .result-kicker {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 740;
+      letter-spacing: .14em;
+    }
+
+    .result h2 {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.08;
+      letter-spacing: -.04em;
+    }
+
+    .result-meta {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .error-card {
+      border-color: rgba(255, 119, 109, .4);
+    }
+
+    .error-card h2 { margin: 0 0 8px; color: var(--danger); }
+    .error-card p { margin: 0 0 20px; color: var(--muted); line-height: 1.6; }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      margin-top: 22px;
+      color: #6f786f;
+      font-size: 11px;
+    }
+
+    @media (max-width: 800px) {
+      .shell { width: min(100% - 24px, 680px); padding-top: 18px; }
+      .topbar { margin-bottom: 50px; }
+      .workspace { grid-template-columns: 1fr; }
+      .side-card { min-height: 260px; }
+      .result-head { align-items: flex-start; flex-direction: column; }
+      .result-video { height: 310px; }
+    }
+
+    @media (max-width: 520px) {
+      h1 { font-size: 43px; }
+      .local-status span:last-child { display: none; }
+      .topbar { margin-bottom: 42px; }
+      .main-card { padding: 9px; }
+      .dropzone { min-height: 320px; padding-inline: 15px; }
+      .selection, .processing, .result, .error-card { padding: 18px; }
+      .action-row { flex-direction: column; }
+      .result h2 { font-size: 26px; }
+      .footer { flex-direction: column; gap: 5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        DEPTH / LOCAL
+      </div>
+      <div class="local-status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>仅在本机运行</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">Offline depth converter</p>
+      <h1>把视频变成<br>可用的深度控制图</h1>
+      <p class="hero-copy">
+        拖入视频，本机自动估计逐帧深度并输出稳定的灰度 MP4。
+        近处更白、远处更黑；超过 15 秒自动均衡拆分，不上传素材，也不消耗模型 token。
+      </p>
+    </section>
+
+    <section class="workspace" id="workspace">
+      <div class="card main-card">
+        <div class="dropzone" id="dropzone" role="button" tabindex="0"
+             aria-label="选择或拖入视频文件">
+          <div>
+            <div class="upload-symbol" aria-hidden="true">＋</div>
+            <p class="drop-title">拖入一个视频</p>
+            <p class="drop-copy">或从本机选择 MP4、MOV、M4V 等视频格式</p>
+            <span class="button">选择视频</span>
+          </div>
+          <input id="fileInput" type="file" accept="video/*" hidden>
+        </div>
+
+        <div class="selection" id="selection">
+          <div class="file-row">
+            <video class="file-thumb" id="filePreview" muted playsinline></video>
+            <div class="file-info">
+              <p class="file-name" id="fileName"></p>
+              <p class="file-meta" id="fileMeta"></p>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="button" id="convertButton" type="button">开始生成深度视频</button>
+            <button class="button secondary" id="changeButton" type="button">更换视频</button>
+          </div>
+        </div>
+
+        <div class="processing" id="processing" aria-live="polite">
+          <div class="process-head">
+            <div>
+              <h2 class="process-title">本机处理中</h2>
+              <p class="process-stage" id="processStage">正在准备视频</p>
+            </div>
+            <div class="progress-value"><span id="progressValue">0</span>%</div>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <p class="process-note">可以保留此页面在后台；关闭启动终端会停止处理。</p>
+        </div>
+
+        <div class="result" id="result">
+          <div class="result-head">
+            <div>
+              <p class="result-kicker">DEPTH MAP READY</p>
+              <h2>深度视频已完成</h2>
+              <p class="result-meta" id="resultMeta"></p>
+            </div>
+            <button class="button secondary" id="restartButton" type="button">处理下一个</button>
+          </div>
+          <div class="segment-list" id="resultList"></div>
+        </div>
+
+        <div class="error-card" id="errorCard" aria-live="assertive">
+          <h2>转换没有完成</h2>
+          <p id="errorMessage"></p>
+          <button class="button secondary" id="retryButton" type="button">重新选择视频</button>
+        </div>
+      </div>
+
+      <aside class="card side-card">
+        <p class="side-label">输出规格</p>
+        <ul class="spec-list">
+          <li><span>画幅</span><strong>保持原比例</strong></li>
+          <li><span>分辨率</span><strong>短边 720p</strong></li>
+          <li><span>编码</span><strong>H.264 MP4</strong></li>
+          <li><span>自动拆分</span><strong>每段 ≤ 15 秒</strong></li>
+          <li><span>深度方向</span><strong>近白 · 远黑</strong></li>
+          <li><span>音频</span><strong>不保留</strong></li>
+        </ul>
+        <p class="privacy-note">
+          <strong>你的素材不会离开这台电脑</strong>
+          页面只连接本机 127.0.0.1。上传步骤是浏览器把文件交给本机处理程序，不经过互联网。
+        </p>
+      </aside>
+    </section>
+
+    <footer class="footer">
+      <span>Depth Anything V2 · Apple GPU</span>
+      <span>Local processing only</span>
+    </footer>
+  </main>
+
+  <script>
+    const dropzone = document.querySelector("#dropzone");
+    const fileInput = document.querySelector("#fileInput");
+    const selection = document.querySelector("#selection");
+    const processing = document.querySelector("#processing");
+    const result = document.querySelector("#result");
+    const errorCard = document.querySelector("#errorCard");
+    const filePreview = document.querySelector("#filePreview");
+    const fileName = document.querySelector("#fileName");
+    const fileMeta = document.querySelector("#fileMeta");
+    const convertButton = document.querySelector("#convertButton");
+    const changeButton = document.querySelector("#changeButton");
+    const processStage = document.querySelector("#processStage");
+    const progressValue = document.querySelector("#progressValue");
+    const progressBar = document.querySelector("#progressBar");
+    const resultList = document.querySelector("#resultList");
+    const resultMeta = document.querySelector("#resultMeta");
+    const restartButton = document.querySelector("#restartButton");
+    const retryButton = document.querySelector("#retryButton");
+    const errorMessage = document.querySelector("#errorMessage");
+
+    let selectedFile = null;
+    let previewUrl = null;
+    let pollTimer = null;
+    let currentJob = null;
+
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) return "0 MB";
+      const units = ["B", "KB", "MB", "GB"];
+      const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+      return `${(bytes / Math.pow(1024, index)).toFixed(index < 2 ? 0 : 1)} ${units[index]}`;
+    }
+
+    function formatDuration(seconds) {
+      if (!Number.isFinite(seconds)) return "读取信息中";
+      const minutes = Math.floor(seconds / 60);
+      const rest = Math.round(seconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${rest}`;
+    }
+
+    function setProgress(value, stage) {
+      const safeValue = Math.max(0, Math.min(100, Math.round(value)));
+      progressValue.textContent = safeValue;
+      progressBar.style.width = `${safeValue}%`;
+      if (stage) processStage.textContent = stage;
+    }
+
+    function resetView() {
+      clearTimeout(pollTimer);
+      pollTimer = null;
+      currentJob = null;
+      selectedFile = null;
+      fileInput.value = "";
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      filePreview.removeAttribute("src");
+      resultList.replaceChildren();
+      selection.classList.remove("visible");
+      processing.classList.remove("visible");
+      result.classList.remove("visible");
+      errorCard.classList.remove("visible");
+      dropzone.style.display = "grid";
+      convertButton.disabled = false;
+      setProgress(0, "正在准备视频");
+    }
+
+    function chooseFile(file) {
+      if (!file) return;
+      if (!file.type.startsWith("video/") && !/\.(mp4|mov|m4v|avi|mkv|webm)$/i.test(file.name)) {
+        showError("请选择常见的视频文件格式。");
+        return;
+      }
+      selectedFile = file;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(file);
+      filePreview.src = previewUrl;
+      fileName.textContent = file.name;
+      fileMeta.textContent = `${formatBytes(file.size)} · 正在读取视频信息`;
+      filePreview.onloadedmetadata = () => {
+        fileMeta.textContent =
+          `${formatBytes(file.size)} · ${filePreview.videoWidth}×${filePreview.videoHeight} · ${formatDuration(filePreview.duration)}`;
+        filePreview.currentTime = Math.min(0.2, filePreview.duration || 0);
+      };
+      dropzone.style.display = "none";
+      errorCard.classList.remove("visible");
+      result.classList.remove("visible");
+      processing.classList.remove("visible");
+      selection.classList.add("visible");
+    }
+
+    function showError(message) {
+      clearTimeout(pollTimer);
+      processing.classList.remove("visible");
+      selection.classList.remove("visible");
+      result.classList.remove("visible");
+      dropzone.style.display = "none";
+      errorMessage.textContent = message || "发生未知错误，请重试。";
+      errorCard.classList.add("visible");
+    }
+
+    function startUpload() {
+      if (!selectedFile) return;
+      convertButton.disabled = true;
+      selection.classList.remove("visible");
+      processing.classList.add("visible");
+      setProgress(0, "正在传入本机处理区");
+
+      const form = new FormData();
+      form.append("video", selectedFile, selectedFile.name);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/convert");
+      xhr.responseType = "json";
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          setProgress(Math.min(2, event.loaded / event.total * 2), "正在传入本机处理区");
+        }
+      };
+      xhr.onload = () => {
+        const payload = xhr.response || {};
+        if (xhr.status < 200 || xhr.status >= 300) {
+          showError(payload.error || "本机服务没有接受这个视频。");
+          return;
+        }
+        currentJob = payload.job_id;
+        pollJob();
+      };
+      xhr.onerror = () => showError("无法连接本机处理服务，请确认启动终端仍然打开。");
+      xhr.send(form);
+    }
+
+    async function pollJob() {
+      if (!currentJob) return;
+      try {
+        const response = await fetch(`/api/jobs/${currentJob}`, { cache: "no-store" });
+        if (!response.ok) throw new Error("任务状态不可用");
+        const job = await response.json();
+        setProgress(job.progress || 0, job.stage);
+        if (job.state === "complete") {
+          showResult(job);
+          return;
+        }
+        if (job.state === "error") {
+          showError(job.error || "转换失败，请重试。");
+          return;
+        }
+        pollTimer = setTimeout(pollJob, 700);
+      } catch (error) {
+        showError("无法读取处理进度，请确认启动终端仍然打开。");
+      }
+    }
+
+    function showResult(job) {
+      processing.classList.remove("visible");
+      result.classList.add("visible");
+      resultList.replaceChildren();
+      const outputs = job.outputs || [];
+      resultMeta.textContent = outputs.length > 1
+        ? `已自动均衡拆分为 ${outputs.length} 段，每段不超过 15 秒。`
+        : "视频时长不超过 15 秒，已输出单个文件。";
+
+      outputs.forEach((item, index) => {
+        const meta = item.metadata || {};
+        const card = document.createElement("article");
+        card.className = "segment-card";
+
+        const video = document.createElement("video");
+        video.className = "result-video";
+        video.controls = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+        video.src = item.media_url;
+
+        const body = document.createElement("div");
+        body.className = "segment-body";
+
+        const label = document.createElement("p");
+        label.className = "segment-index";
+        label.textContent = outputs.length > 1
+          ? `第 ${index + 1} 段 / 共 ${outputs.length} 段`
+          : "完整成片";
+
+        const name = document.createElement("p");
+        name.className = "segment-name";
+        name.textContent = item.name;
+        name.title = item.name;
+
+        const details = document.createElement("p");
+        details.className = "segment-meta";
+        details.textContent =
+          `${meta.width || 720}×${meta.height || 960} · ` +
+          `${formatDuration(meta.duration || 0)} · ${formatBytes(meta.size || 0)}`;
+
+        const actions = document.createElement("div");
+        actions.className = "segment-actions";
+
+        const download = document.createElement("a");
+        download.className = "button";
+        download.href = item.download_url;
+        download.download = item.name;
+        download.textContent = "下载 MP4";
+
+        const reveal = document.createElement("button");
+        reveal.className = "button secondary";
+        reveal.type = "button";
+        reveal.textContent = "Finder 中显示";
+        reveal.addEventListener("click", () => revealOutput(item.reveal_url, reveal));
+
+        actions.append(download, reveal);
+        body.append(label, name, details, actions);
+        card.append(video, body);
+        resultList.append(card);
+      });
+    }
+
+    async function revealOutput(url, button) {
+      if (!url) return;
+      button.disabled = true;
+      try {
+        await fetch(url, { method: "POST" });
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        fileInput.click();
+      }
+    });
+    fileInput.addEventListener("change", () => chooseFile(fileInput.files[0]));
+    ["dragenter", "dragover"].forEach((name) => {
+      dropzone.addEventListener(name, (event) => {
+        event.preventDefault();
+        dropzone.classList.add("dragging");
+      });
+    });
+    ["dragleave", "drop"].forEach((name) => {
+      dropzone.addEventListener(name, (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("dragging");
+      });
+    });
+    dropzone.addEventListener("drop", (event) => chooseFile(event.dataTransfer.files[0]));
+    convertButton.addEventListener("click", startUpload);
+    changeButton.addEventListener("click", () => fileInput.click());
+    restartButton.addEventListener("click", resetView);
+    retryButton.addEventListener("click", resetView);
+    window.addEventListener("beforeunload", () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    });
+  </script>
+</body>
+</html>
