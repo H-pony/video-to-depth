@@ -425,7 +425,7 @@ def main() -> int:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     port = available_port()
     url = f"http://127.0.0.1:{port}"
-    print(f"\n本地深度视频工具已启动：{url}")
+    print(f"\n视频转深度已启动：{url}")
     print("关闭这个终端窗口即可停止服务。\n")
     if os.environ.get("DEPTH_WEB_NO_BROWSER") != "1":
         threading.Timer(0.8, lambda: webbrowser.open(url)).start()

@@ -36,7 +36,7 @@ status=$?
 if [[ "$status" -eq 0 ]]; then
   /usr/bin/osascript -e 'display dialog "黑白深度视频已经输出到原视频所在文件夹。" with title "转换完成" buttons {"好"} default button "好"' >/dev/null
 else
-  /usr/bin/osascript -e 'display dialog "转换失败，请查看终端中的错误信息。" with title "本地深度视频工具" buttons {"好"} default button "好" with icon stop' >/dev/null
+  /usr/bin/osascript -e 'display dialog "转换失败，请查看终端中的错误信息。" with title "视频转深度" buttons {"好"} default button "好" with icon stop' >/dev/null
 fi
 
 echo
